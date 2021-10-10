@@ -23,6 +23,10 @@ dependencies {
 		}
 	}
 }
+sourceSets.getByName("main") {
+	val generatedSourcesPath = file("../quest-command/build/classes/")
+	java.srcDir(generatedSourcesPath)
+}
 
 tasks.withType<KotlinCompile> {
 	kotlinOptions {
