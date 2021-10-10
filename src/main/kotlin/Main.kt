@@ -1,12 +1,14 @@
+import core.GameState
 import io.ktor.application.*
-import io.ktor.server.netty.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
+import io.ktor.server.netty.*
 
 fun main() {
+    println("Starting game " + GameState.gameName)
     embeddedServer(Netty, 8080) {
         routing {
             get("/health") {
