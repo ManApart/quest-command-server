@@ -1,10 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	id("org.springframework.boot") version "2.4.2"
-	id("io.spring.dependency-management") version "1.0.11.RELEASE"
-	kotlin("jvm") version "1.4.21"
-	kotlin("plugin.spring") version "1.4.21"
+	kotlin("jvm") version "1.5.20"
 }
 
 group = "org.rak.manapart"
@@ -16,22 +13,45 @@ repositories {
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("io.springfox:springfox-boot-starter:3.0.0")
+	implementation("io.ktor:ktor-server-core:1.6.4")
+	implementation("io.ktor:ktor-server-netty:1.6.4")
+	implementation("ch.qos.logback:logback-classic:1.2.3")
+	//Once stable, replace this with a reference to quest command's jar
+	implementation("org.rak.manapart:quest-command") {
+		version{
+			branch = "master"
+		}
+	}
+}
 
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
+//Needed because idea doesn't recognize the sources for a git reference
+//Can be removed once we're referencing a real jar
+sourceSets.getByName("main") {
+	val generatedSourcesPath = file("../quest-command/build/classes/")
+	java.srcDir(generatedSourcesPath)
 }
 
 tasks.withType<KotlinCompile> {
 	kotlinOptions {
-		freeCompilerArgs = listOf("-Xjsr305=strict")
+		languageVersion = "1.5"
 		jvmTarget = "11"
 	}
 }
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+
+tasks.withType<Jar> {
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+	manifest {
+		attributes["Main-Class"] = "MainKt"
+	}
+	from(sourceSets.main.get().output)
+	dependsOn(configurations.runtimeClasspath)
+	from({
+		configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
+	})
+
 }
