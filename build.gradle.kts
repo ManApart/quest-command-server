@@ -23,6 +23,9 @@ dependencies {
 		}
 	}
 }
+
+//Needed because idea doesn't recognize the sources for a git reference
+//Can be removed once we're referencing a real jar
 sourceSets.getByName("main") {
 	val generatedSourcesPath = file("../quest-command/build/classes/")
 	java.srcDir(generatedSourcesPath)
