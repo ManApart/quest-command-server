@@ -10,38 +10,19 @@ java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
 	mavenCentral()
-//	maven {
-//		url = uri("https://maven.pkg.github.com/manapart/quest-command")
-//	}
 }
 
 dependencies {
 	implementation("io.ktor:ktor-server-core:1.6.4")
 	implementation("io.ktor:ktor-server-netty:1.6.4")
 	implementation("ch.qos.logback:logback-classic:1.2.3")
-	implementation("org.reflections:reflections:0.9.12")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.0")
-	implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.21")
-	testImplementation("org.jetbrains.kotlin:kotlin-test:1.5.21")
-//	implementation("org.rak.manapart:quest-command:0.0.5")
+	//Once stable, replace this with a reference to quest command's jar
 	implementation("org.rak.manapart:quest-command") {
 		version{
 			branch = "master"
 		}
 	}
 }
-
-//Once stable, replace this with a reference to quest command's jar
-//sourceSets.create("base") {
-//	java.srcDir("../quest-command/src/main/kotlin")
-//	resources.srcDir("../quest-command/src/main/resource")
-//}
-//
-//sourceSets.getByName("main") {
-//	val base = sourceSets["base"]
-//	compileClasspath += base.output + base.compileClasspath
-//	runtimeClasspath += output + compileClasspath
-//}
 
 tasks.withType<KotlinCompile> {
 	kotlinOptions {

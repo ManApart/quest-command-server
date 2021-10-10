@@ -12,6 +12,7 @@ fun main() {
     embeddedServer(Netty, 8080) {
         routing {
             get("/health") {
+                println("Health game " + GameState.gameName)
                 call.respondText("Healthy", ContentType.Text.Html)
             }
 
