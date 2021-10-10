@@ -4,14 +4,6 @@ plugins {
 	kotlin("jvm") version "1.5.20"
 }
 
-sourceSets.getByName("main") {
-	val generatedSourcesPath = file("out/production/classes/generated")
-	java.srcDir(generatedSourcesPath)
-
-//	generatedSourceDirs.add(generatedSourcesPath)
-}
-
-
 group = "org.rak.manapart"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_11
