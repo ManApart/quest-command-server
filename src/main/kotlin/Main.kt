@@ -15,7 +15,7 @@ fun main() {
     println("Starting game " + GameState.gameName)
     EventManager.registerListeners()
     GameManager.newOrLoadGame()
-    CommandParser.parseInitialCommand(emptyArray())
+//    CommandParser.parseInitialCommand(emptyArray())
     GameLogger.main.endCurrent()
     embeddedServer(Netty, 8080) {
         routing {
@@ -36,7 +36,7 @@ fun main() {
                 val id = call.parameters["id"]?.toIntOrNull() ?: 0
                 val start = call.request.queryParameters["start"]?.toIntOrNull() ?: 0
                 val body = call.receive<String>()
-                CommandParser.parseCommand(body)
+//                CommandParser.parseCommand(body)
                 GameLogger.main.endCurrent()
 
                 val response = getHistory(id, start)
