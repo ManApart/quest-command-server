@@ -11,22 +11,16 @@ java.sourceCompatibility = JavaVersion.VERSION_14
 repositories {
     mavenLocal()
     mavenCentral()
-//    maven {
-//        url = uri("https://maven.pkg.github.com/ManApart/quest-command")
-//        credentials {
-//            username = System.getenv("GITHUB_ACTOR")
-//            password = System.getenv("GITHUB_TOKEN")
-//        }
-//    }
 }
 
 dependencies {
     implementation("io.ktor:ktor-server-core:1.6.8")
     implementation("io.ktor:ktor-server-netty:1.6.8")
     implementation("ch.qos.logback:logback-classic:1.2.11")
-    //Once stable, replace this with a reference to quest command's jar
-//    implementation("org.rak.manapart:quest-command:0.0.5")
-	implementation("org.rak.manapart:quest-command:SNAPSHOT")
+//    implementation("org.rak.manapart:quest-command:0.0.5") {
+	implementation("org.rak.manapart:quest-command:SNAPSHOT") {
+        exclude("org.jetbrains.kotlin","kotlin-stdlib")
+    }
 }
 
 tasks.withType<KotlinCompile> {
