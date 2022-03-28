@@ -1,6 +1,6 @@
 # Quest Command Server
 
-In intellij go to `quest-command-server.main` module and add a dependency on module `quest-command.main`
+Build and push the jar from quest command to local maven. Make sure to use WSL or windows maven cache appropriately. If the jar doesn't show up you probably used WSL and then tried an intellij pointed at a windows cache.
 
 Example calls
 ```
