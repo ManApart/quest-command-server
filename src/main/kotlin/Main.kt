@@ -1,6 +1,6 @@
 import core.GameManager
 import core.GameState
-import core.commands.CommandParser
+import core.commands.CommandParsers
 import core.events.EventManager
 import core.history.GameLogger
 import io.ktor.application.*
@@ -36,7 +36,7 @@ fun main() {
                 val id = call.parameters["id"]?.toIntOrNull() ?: 0
                 val start = call.request.queryParameters["start"]?.toIntOrNull() ?: 0
                 val body = call.receive<String>()
-//                CommandParser.parseCommand(body)
+                CommandParsers.parseCommand(ServerState.playersById[id]!!, body)
                 GameLogger.main.endCurrent()
 
                 val response = getHistory(id, start)
