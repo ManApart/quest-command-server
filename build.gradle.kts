@@ -1,7 +1,8 @@
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.5.20"
+    kotlin("jvm") version "1.6.10"
 }
 
 group = "org.rak.manapart"
@@ -14,8 +15,8 @@ repositories {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-server-core:1.6.8")
-    implementation("io.ktor:ktor-server-netty:1.6.8")
+    implementation("io.ktor:ktor-server-core:2.0.0")
+    implementation("io.ktor:ktor-server-netty:2.0.0")
     implementation("ch.qos.logback:logback-classic:1.2.11")
 //    implementation("org.rak.manapart:quest-command:0.0.5") {
 	implementation("org.rak.manapart:quest-command:SNAPSHOT") {
