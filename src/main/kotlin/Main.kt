@@ -16,6 +16,7 @@ import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 import system.connection.ServerInfo
 import system.connection.ServerResponse
+import java.awt.SystemColor.info
 
 fun main() {
     println("Starting game " + GameState.gameName)
@@ -26,8 +27,16 @@ fun main() {
         install(ContentNegotiation) { json() }
         routing {
             get("/info") {
-                val info = ServerInfo(GameState.gameName, validServer = true)
+                val info = ServerInfo(GameState.gameName, GameState.players.values.map { it.name }, validServer = true)
                 println("Health game " + GameState.gameName)
+                call.respond(info)
+            }
+
+            post("/{name}") {
+                val name = call.parameters["name"] ?: "Player"
+                println("Creating Player $name")
+                CommandParsers.parseCommand(player, "create $name")
+                val info = ServerInfo(GameState.gameName, GameState.players.values.map { it.name }, validServer = true)
                 call.respond(info)
             }
 
@@ -58,5 +67,7 @@ private suspend fun ApplicationCall.respondWithHistory(name: String, player: Pla
     } else {
         Pair(0, listOf("No Player found for id $name."))
     }
+    println("History for $name:")
+    history.forEach { println("\t$it") }
     this.respond(ServerResponse(end, history))
 }
