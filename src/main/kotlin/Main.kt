@@ -22,7 +22,6 @@ fun main() {
     println("Starting game " + GameState.gameName)
     EventManager.registerListeners()
     GameManager.newOrLoadGame()
-//    CommandParser.parseInitialCommand(emptyArray())
     embeddedServer(Netty, 8080) {
         install(ContentNegotiation) { json() }
         routing {
@@ -43,22 +42,26 @@ fun main() {
             get("/{name}/history") {
                 val name = call.parameters["name"] ?: "Player"
                 val start = call.request.queryParameters["start"]?.toIntOrNull() ?: 0
+                val player = getPlayer(name)
                 call.respondWithHistory(name, player, start)
             }
 
             post("{name}/command") {
                 val name = call.parameters["name"] ?: "Player"
-                val start = call.request.queryParameters["start"]?.toIntOrNull() ?: 0
                 val body: String = call.receive()
-                val player = GameState.players[name]
+                val player = getPlayer(name)
+                val start = (call.request.queryParameters["start"]?.toIntOrNull() ?: 0)
                 if (player != null) {
                     CommandParsers.parseCommand(player, body)
-                    GameLogger.getHistory(player).endCurrent()
                 }
                 call.respondWithHistory(name, player, start)
             }
         }
     }.start(wait = true)
+}
+
+private fun getPlayer(name: String): Player? {
+    return GameState.players.values.firstOrNull { it.name.lowercase() == name.lowercase() }
 }
 
 private suspend fun ApplicationCall.respondWithHistory(name: String, player: Player?, start: Int) {
@@ -67,7 +70,7 @@ private suspend fun ApplicationCall.respondWithHistory(name: String, player: Pla
     } else {
         Pair(0, listOf("No Player found for id $name."))
     }
-    println("History for $name:")
+    println("History for ${player?.name ?: name}:")
     history.forEach { println("\t$it") }
     this.respond(ServerResponse(end, history))
 }
