@@ -70,7 +70,9 @@ private suspend fun ApplicationCall.respondWithHistory(name: String, player: Pla
     } else {
         Pair(0, listOf("No Player found for id $name."))
     }
-    println("History for ${player?.name ?: name}:")
-    history.forEach { println("\t$it") }
+    if (history.isNotEmpty()) {
+        println("History for ${player?.name ?: name}:")
+        history.forEach { println("\t$it") }
+    }
     this.respond(ServerResponse(end, history))
 }
