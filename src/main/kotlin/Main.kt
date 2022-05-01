@@ -42,19 +42,21 @@ fun main() {
             get("/{name}/history") {
                 val name = call.parameters["name"] ?: "Player"
                 val start = call.request.queryParameters["start"]?.toIntOrNull() ?: 0
+                val startSub = call.request.queryParameters["startSub"]?.toIntOrNull() ?: 0
                 val player = getPlayer(name)
-                call.respondWithHistory(name, player, start)
+                call.respondWithHistory(name, player, start, startSub)
             }
 
             post("{name}/command") {
                 val name = call.parameters["name"] ?: "Player"
                 val body: String = call.receive()
                 val player = getPlayer(name)
-                val start = (call.request.queryParameters["start"]?.toIntOrNull() ?: 0)
+                val start = call.request.queryParameters["start"]?.toIntOrNull() ?: 0
+                val startSub = call.request.queryParameters["startSub"]?.toIntOrNull() ?: 0
                 if (player != null) {
                     CommandParsers.parseCommand(player, body)
                 }
-                call.respondWithHistory(name, player, start)
+                call.respondWithHistory(name, player, start, startSub)
             }
         }
     }.start(wait = true)
@@ -64,15 +66,17 @@ private fun getPlayer(name: String): Player? {
     return GameState.players.values.firstOrNull { it.name.lowercase() == name.lowercase() }
 }
 
-private suspend fun ApplicationCall.respondWithHistory(name: String, player: Player?, start: Int) {
-    val (end, history) = if (player != null) {
-        getHistory(player, start)
+private suspend fun ApplicationCall.respondWithHistory(name: String, player: Player?, start: Int, startSub: Int) {
+    val historyInfo = if (player != null) {
+        getHistory(player, start, startSub)
     } else {
-        Pair(0, listOf("No Player found for id $name."))
+        HistoryInfo(0, 0, listOf("No Player found for id $name."))
     }
-    println("History for ${player?.name ?: name}. $start - $end:")
-    if (history.isNotEmpty()) {
-        history.forEach { println("\t$it") }
+    with(historyInfo) {
+        if (responses.isNotEmpty()) {
+            println("History for ${player?.name ?: name} $start:$startSub - $end:$subEnd:")
+            responses.forEach { println("\t$it") }
+        }
     }
-    this.respond(ServerResponse(end, history))
+    this.respond(ServerResponse(historyInfo.end, historyInfo.subEnd, historyInfo.responses))
 }
