@@ -1,4 +1,3 @@
-import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.exclude
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -6,12 +5,34 @@ plugins {
 }
 
 group = "org.rak.manapart"
-version = "0.0.1-SNAPSHOT"
+version = ""
 java.sourceCompatibility = JavaVersion.VERSION_14
+
+val props = loadProps("hidden-gradle.properties")
+fun loadProps(fileName: String): Map<String, String>{
+    val propsFile = rootProject.file(fileName)
+    return if (propsFile.exists()) {
+        propsFile.readLines().associate { line ->
+            val parts = line.split("=").map { it.trim() }
+            parts.first()to  parts.last()
+        }
+    } else {
+        println(propsFile.name + "  does not exist")
+        mapOf()
+    }
+}
 
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/ManApart/quest-command")
+        credentials {
+            username = props["gpr.user"]
+            password = props["gpr.key"]
+        }
+    }
 }
 
 dependencies {
@@ -21,8 +42,8 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
     implementation("ch.qos.logback:logback-classic:1.2.11")
-//    implementation("org.rak.manapart:quest-command:0.0.5") {
-	implementation("org.rak.manapart:quest-command:SNAPSHOT") {
+//	implementation("org.rak.manapart:quest-command:SNAPSHOT") {
+    implementation("org.rak.manapart:quest-command:0.0.6") {
         exclude("org.jetbrains.kotlin","kotlin-stdlib")
     }
 }
