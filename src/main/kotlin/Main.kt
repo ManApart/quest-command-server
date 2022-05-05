@@ -18,11 +18,12 @@ import system.connection.ServerInfo
 import system.connection.ServerResponse
 import java.awt.SystemColor.info
 
-fun main() {
-    println("Starting game " + GameState.gameName)
+fun main(args: Array<String>) {
+    val port = args.firstOrNull()?.toIntOrNull() ?: 8080
+    println("Starting game ${GameState.gameName} on port $port")
     EventManager.registerListeners()
     GameManager.newOrLoadGame()
-    embeddedServer(Netty, 8080) {
+    embeddedServer(Netty, port) {
         install(ContentNegotiation) { json() }
         routing {
             get("/info") {
