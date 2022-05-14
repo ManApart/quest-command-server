@@ -1,5 +1,6 @@
 import core.GameManager
 import core.GameState
+import core.GameState.getPlayer
 import core.GameState.player
 import core.Player
 import core.commands.CommandParsers
@@ -17,10 +18,12 @@ import io.ktor.utils.io.*
 import system.connection.ServerInfo
 import system.connection.ServerResponse
 import java.awt.SystemColor.info
+import java.io.File
 
 fun main(args: Array<String>) {
     val port = args.firstOrNull()?.toIntOrNull() ?: 8080
     println("Starting game ${GameState.gameName} on port $port")
+    val logFile = File("./serverlog.txt").also { if (!it.exists()) it.createNewFile() }
     EventManager.registerListeners()
     GameManager.newOrLoadGame()
     embeddedServer(Netty, port) {
@@ -55,6 +58,7 @@ fun main(args: Array<String>) {
                 val start = call.request.queryParameters["start"]?.toIntOrNull() ?: 0
                 val startSub = call.request.queryParameters["startSub"]?.toIntOrNull() ?: 0
                 if (player != null) {
+                    logRequest(logFile, player.name, body)
                     CommandParsers.parseCommand(player, body)
                 }
                 call.respondWithHistory(name, player, start, startSub)
@@ -65,6 +69,10 @@ fun main(args: Array<String>) {
 
 private fun getPlayer(name: String): Player? {
     return GameState.players.values.firstOrNull { it.name.lowercase() == name.lowercase() }
+}
+
+private fun logRequest(file: File, playerName: String, message: String){
+    file.appendText("$playerName: $message\n")
 }
 
 private suspend fun ApplicationCall.respondWithHistory(name: String, player: Player?, start: Int, startSub: Int) {
