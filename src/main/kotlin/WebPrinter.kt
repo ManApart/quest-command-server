@@ -8,7 +8,10 @@ fun getHistory(player: Player, start: Int, startSub: Int): HistoryInfo {
     val history = GameLogger.getHistory(player).history
     return if (history.size < 1) {
         //Add a history so we don't keep looping this on poll
-        GameLogger.getHistory(player).print("No history for ${player.name}.")
+        with(GameLogger.getHistory(player)) {
+            print("No history for ${player.name}.")
+            endCurrent()
+        }
         HistoryInfo(0, 0, listOf("No history for ${player.name}."))
     } else {
         val adjustedStart = min(start, history.size - 1)
