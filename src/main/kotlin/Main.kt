@@ -5,11 +5,13 @@ import core.GameState.player
 import core.Player
 import core.commands.CommandParsers
 import core.events.EventManager
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.cors.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -22,12 +24,16 @@ fun main(args: Array<String>) {
     println("Starting game ${GameState.gameName} on port $port")
     val logFile = File("./serverlog.txt").also { if (!it.exists()) it.createNewFile() }
 
-    EventManager.registerListeners()
     GameManager.newOrLoadGame()
     EventManager.executeEvents()
 
     embeddedServer(Netty, port) {
         install(ContentNegotiation) { json() }
+        install(CORS) {
+            anyHost()
+            allowHeaders { true }
+            HttpMethod.DefaultMethods.forEach { allowMethod(it) }
+        }
         routing {
             get("/info") {
                 val info = ServerInfo(GameState.gameName, GameState.players.values.map { it.name }, validServer = true)
