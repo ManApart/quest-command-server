@@ -19,6 +19,8 @@ import system.connection.ServerInfo
 import system.connection.ServerResponse
 import java.io.File
 
+val ignoredCommands = listOf("Exit")
+
 fun main(args: Array<String>) {
     val port = args.firstOrNull()?.toIntOrNull() ?: 8080
     println("Starting game ${GameState.gameName} on port $port")
@@ -57,6 +59,16 @@ fun main(args: Array<String>) {
                 call.respondWithHistory(name, player, start, startSub)
             }
 
+            post("/{name}/suggestion") {
+                val name = call.parameters["name"] ?: "Player"
+                val player = getPlayer(name)
+                if (player == null) call.respond(listOf<String>()) else {
+                    val body: String = call.receive()
+                    val suggestions = CommandParsers.suggestions(player, body)
+                    call.respond(suggestions)
+                }
+            }
+
             post("{name}/command") {
                 val name = call.parameters["name"] ?: "Player"
                 val body: String = call.receive()
@@ -65,7 +77,9 @@ fun main(args: Array<String>) {
                 val startSub = call.request.queryParameters["startSub"]?.toIntOrNull() ?: 0
                 if (player != null) {
                     logRequest(logFile, player.name, body)
-                    CommandParsers.parseCommand(player, body)
+                    if (ignoredCommands.none { body.startsWith(it, ignoreCase = true) }) {
+                        CommandParsers.parseCommand(player, body)
+                    }
                 }
                 call.respondWithHistory(name, player, start, startSub)
             }
@@ -77,7 +91,7 @@ private fun getPlayer(name: String): Player? {
     return GameState.players.values.firstOrNull { it.name.lowercase() == name.lowercase() }
 }
 
-private fun logRequest(file: File, playerName: String, message: String){
+private fun logRequest(file: File, playerName: String, message: String) {
     file.appendText("$playerName: $message\n")
 }
 
