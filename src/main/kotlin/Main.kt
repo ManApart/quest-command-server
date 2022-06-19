@@ -20,6 +20,7 @@ import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
 import system.connection.ServerInfo
 import java.io.File
+import java.time.Duration
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -34,6 +35,7 @@ fun main(args: Array<String>) {
     embeddedServer(Netty, port) {
         install(WebSockets) {
             contentConverter = KotlinxWebsocketSerializationConverter(Json)
+            timeout = Duration.ofHours(5)
         }
         install(ContentNegotiation) { json() }
         install(CORS) {
@@ -74,6 +76,7 @@ fun main(args: Array<String>) {
                             println("Unknown frame: $frame")
                         }
                     }
+                    println("Processed Frame")
                 }
             }
         }
