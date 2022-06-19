@@ -6,18 +6,22 @@ import core.Player
 import core.commands.CommandParsers
 import core.events.EventManager
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
+import io.ktor.websocket.*
+import kotlinx.serialization.json.Json
 import system.connection.ServerInfo
-import system.connection.ServerResponse
 import java.io.File
+import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 
 fun main(args: Array<String>) {
     val port = args.firstOrNull()?.toIntOrNull() ?: 8080
@@ -28,6 +32,9 @@ fun main(args: Array<String>) {
     EventManager.executeEvents()
 
     embeddedServer(Netty, port) {
+        install(WebSockets) {
+            contentConverter = KotlinxWebsocketSerializationConverter(Json)
+        }
         install(ContentNegotiation) { json() }
         install(CORS) {
             anyHost()
@@ -41,57 +48,61 @@ fun main(args: Array<String>) {
                 call.respond(info)
             }
 
-            post("/{name}") {
+            val connections = Collections.synchronizedSet<Connection?>(LinkedHashSet())
+            webSocket("{name}/command") {
                 val name = call.parameters["name"] ?: "Player"
-                println("Creating Player $name")
-                CommandParsers.parseCommand(player, "create $name")
-                val info = ServerInfo(GameState.gameName, GameState.players.values.map { it.name }, validServer = true)
-                call.respond(info)
-            }
-
-            get("/{name}/history") {
-                val name = call.parameters["name"] ?: "Player"
-                val start = call.request.queryParameters["start"]?.toIntOrNull() ?: 0
-                val startSub = call.request.queryParameters["startSub"]?.toIntOrNull() ?: 0
-                val player = getPlayer(name)
-                call.respondWithHistory(name, player, start, startSub)
-            }
-
-            post("{name}/command") {
-                val name = call.parameters["name"] ?: "Player"
-                val body: String = call.receive()
-                val player = getPlayer(name)
-                val start = call.request.queryParameters["start"]?.toIntOrNull() ?: 0
-                val startSub = call.request.queryParameters["startSub"]?.toIntOrNull() ?: 0
-                if (player != null) {
-                    logRequest(logFile, player.name, body)
-                    CommandParsers.parseCommand(player, body)
+                if (getPlayer(name) == null){
+                    CommandParsers.parseCommand(player, "create $name")
                 }
-                call.respondWithHistory(name, player, start, startSub)
+                val player = getPlayer(name)!!
+                val thisConnection = Connection(player, this)
+                connections += thisConnection
+                thisConnection.sendHistoryUpdate()
+
+                for (frame in incoming) {
+                    when (frame) {
+                        is Frame.Text -> {
+                            val body = frame.readText()
+                            logRequest(logFile, player.name, body)
+                            CommandParsers.parseCommand(player, body)
+
+                            connections.forEach {
+                                it.sendHistoryUpdate()
+                            }
+                        }
+                        else -> {
+                            println("Unknown frame: $frame")
+                        }
+                    }
+                }
             }
         }
     }.start(wait = true)
 }
 
-private fun getPlayer(name: String): Player? {
-    return GameState.players.values.firstOrNull { it.name.lowercase() == name.lowercase() }
+class Connection(private val player: Player, private val session: WebSocketServerSession) {
+    companion object {
+        var lastId = AtomicInteger(0)
+    }
+
+    val id = "user${lastId.getAndIncrement()}"
+    var latestResponse = 0
+    var latestSubResponse = 0
+
+    suspend fun sendHistoryUpdate(){
+        val historyInfo = getHistory(player, latestResponse, latestSubResponse)
+        with(historyInfo) {
+            if (responses.isNotEmpty()) {
+                println("History for ${player.name} $latestResponse:$latestSubResponse - $end:$subEnd:")
+                responses.forEach { println("\t$it") }
+            }
+        }
+        latestResponse = historyInfo.end
+        latestSubResponse = historyInfo.subEnd
+        session.sendSerialized(historyInfo.responses)
+    }
 }
 
 private fun logRequest(file: File, playerName: String, message: String){
     file.appendText("$playerName: $message\n")
-}
-
-private suspend fun ApplicationCall.respondWithHistory(name: String, player: Player?, start: Int, startSub: Int) {
-    val historyInfo = if (player != null) {
-        getHistory(player, start, startSub)
-    } else {
-        HistoryInfo(0, 0, listOf("No Player found for id $name."))
-    }
-    with(historyInfo) {
-        if (responses.isNotEmpty()) {
-            println("History for ${player?.name ?: name} $start:$startSub - $end:$subEnd:")
-            responses.forEach { println("\t$it") }
-        }
-    }
-    this.respond(ServerResponse(historyInfo.end, historyInfo.subEnd, historyInfo.responses))
 }

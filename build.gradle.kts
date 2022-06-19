@@ -36,12 +36,13 @@ repositories {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-server-core:2.0.0")
-    implementation("io.ktor:ktor-server-netty:2.0.0")
-    implementation("io.ktor:ktor-server-content-negotiation:2.0.0")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:2.0.0")
-    implementation("io.ktor:ktor-server-cors:2.0.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
+    implementation("io.ktor:ktor-server-core:2.0.2")
+    implementation("io.ktor:ktor-server-netty:2.0.2")
+    implementation("io.ktor:ktor-server-content-negotiation:2.0.2")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.0.2")
+    implementation("io.ktor:ktor-server-cors:2.0.2")
+    implementation("io.ktor:ktor-server-websockets:2.0.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
     implementation("ch.qos.logback:logback-classic:1.2.11")
 	implementation("org.rak.manapart:quest-command:dev") {
 //    implementation("org.rak.manapart:quest-command:0.0.6") {
